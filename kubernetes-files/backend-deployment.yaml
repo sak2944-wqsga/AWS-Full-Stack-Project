@@ -18,7 +18,7 @@ spec:
       - name: backend
         image: 134059028782.dkr.ecr.us-east-1.amazonaws.com/backend:5
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         env:
         - name: DB_HOST
           valueFrom:
