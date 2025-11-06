@@ -5,7 +5,7 @@ metadata:
   labels:
     app: backend
 spec:
-  replicas: 4
+  replicas: 2
   selector:
     matchLabels:
       app: backend
@@ -18,7 +18,7 @@ spec:
       - name: backend
         image: 134059028782.dkr.ecr.us-east-1.amazonaws.com/backend:7
         ports:
-        - containerPort: 8080
+        - containerPort: 80
         env:
         - name: DB_HOST
           valueFrom:
@@ -46,4 +46,4 @@ spec:
               name: db-secret
               key: db_password
         - name: PORT
-          value: "8080"  # Adjust if necessary
+          value: "3306"  # Adjust if necessary
