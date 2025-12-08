@@ -1,3 +1,5 @@
+Manual deployment directly on VM
+
 1.create two pubic "ubuntu" servers in project-vpc    one is for frontend and another one is for backend
 2 create rds database in project-vpc
 3 copy the rds end point
