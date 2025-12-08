@@ -1,28 +1,49 @@
 import express from "express";
-import mysql from "mysql";
+import mysql from "mysql2";       // use mysql2 for SSL support
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+
+dotenv.config();
+
 const app = express();
-
-
-dotenv.config()
 
 app.use(cors());
 app.use(express.json());
-app.use(morgan('common'));
+app.use(morgan("common"));
+
+// ---------------------------
+// MySQL connection with SSL
+// ---------------------------
 const db = mysql.createConnection({
-  host: process.env.DB_HOST ,
+  host: process.env.DB_HOST,
   user: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.PORT,
+  port: process.env.DB_PORT || 3306, // default MySQL port
   database: "test",
+  ssl: {
+    rejectUnauthorized: false, // enforces SSL
+  },
 });
 
+db.connect((err) => {
+  if (err) {
+    console.error("MySQL connection error:", err);
+  } else {
+    console.log("Connected to MySQL with SSL");
+  }
+});
+
+// ---------------------------
+// Routes
+// ---------------------------
+
+// Test route
 app.get("/", (req, res) => {
   res.json("hello");
 });
 
+// Get all books
 app.get("/books", (req, res) => {
   const q = "SELECT * FROM books";
   db.query(q, (err, data) => {
@@ -34,6 +55,7 @@ app.get("/books", (req, res) => {
   });
 });
 
+// Add a new book
 app.post("/books", (req, res) => {
   const q = "INSERT INTO books(`title`, `desc`, `price`, `cover`) VALUES (?)";
 
@@ -45,24 +67,27 @@ app.post("/books", (req, res) => {
   ];
 
   db.query(q, [values], (err, data) => {
-    if (err) return res.send(err);
+    if (err) return res.json(err);
     return res.json(data);
   });
 });
 
+// Delete a book
 app.delete("/books/:id", (req, res) => {
   const bookId = req.params.id;
-  const q = " DELETE FROM books WHERE id = ? ";
+  const q = "DELETE FROM books WHERE id = ?";
 
   db.query(q, [bookId], (err, data) => {
-    if (err) return res.send(err);
+    if (err) return res.json(err);
     return res.json(data);
   });
 });
 
+// Update a book
 app.put("/books/:id", (req, res) => {
   const bookId = req.params.id;
-  const q = "UPDATE books SET `title`= ?, `desc`= ?, `price`= ?, `cover`= ? WHERE id = ?";
+  const q =
+    "UPDATE books SET `title`= ?, `desc`= ?, `price`= ?, `cover`= ? WHERE id = ?";
 
   const values = [
     req.body.title,
@@ -71,12 +96,17 @@ app.put("/books/:id", (req, res) => {
     req.body.cover,
   ];
 
-  db.query(q, [...values,bookId], (err, data) => {
-    if (err) return res.send(err);
+  db.query(q, [...values, bookId], (err, data) => {
+    if (err) return res.json(err);
     return res.json(data);
   });
 });
 
-app.listen(80, () => {
-  console.log("Connected to backend.");
+// ---------------------------
+// Start server
+// ---------------------------
+const PORT = process.env.APP_PORT || 80;
+
+app.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
 });
